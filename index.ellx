@@ -1,0 +1,217 @@
+version: 1.1
+nodes:
+  timestep = slider({ value: 500, min: 50, max: 1000 })
+  $25 = timestep
+  $23 = store.values
+  $21 = button({ label: $running ? "pause" : "run", dense: true, onClick: () => store.setRunning(!$running) })
+  reset = button({ label: "reset", dense: true, onClick: store.resetStore, whenPressed: true })
+  dt = increment(dtOptions)
+  dtOptions = { value: 1, ms: timestep, step: Number($running), reset }
+  $running = store.running
+  $$reset = store.$$reset
+  $tankLevel = store.tankLevel
+  inletflowRate = slider({ step: 0.01 })
+  $data = store.$data
+  $29 = inletflowRate
+  $28 = plot($data)
+  outflowpattern = [[50, 10], [300, 14], [300, 6], [50, 5], [300, 12], [200, 10]].map((x) => Array(x[0]).fill(x[1])).flat()
+  $current = $data[$data.length - 1]
+  inletflowRateTick = interval({ ms: timestep, gen: () => inletflowRate })
+  p = () => mypump(inletflowRateTick, $current[0], $current[1])
+  inletflow = euler(dt, p, $current[0], inletflowRateTick)
+  currentTankLevel = clamp(0, 5, tankLevel(20, inletflow, outflowpattern[dt], $current[1]))
+  math = [dt, currentTankLevel]
+  d = store.appendData(math)
+layout:
+[
+  [
+    {
+      "value": "Timestep:"
+    },
+    {
+      "node": "timestep"
+    },,,,
+    {
+      "value": "Store values:"
+    }
+  ],
+  [
+    {
+      "node": "$25"
+    },,,,,
+    {
+      "node": "$23",
+      "expansion": {
+        "vertical": true,
+        "labelsLeft": true,
+        "height": 4,
+        "width": 1
+      }
+    }
+  ],,
+  [
+    {
+      "value": "Model state:"
+    }
+  ],
+  [
+    {
+      "node": "$21"
+    },,
+    {
+      "node": "reset"
+    }
+  ],,
+  [
+    {
+      "value": "Current step (dt):"
+    },,
+    {
+      "value": "Dt options:"
+    },,,
+    {
+      "value": "Store subscriptions:"
+    }
+  ],
+  [
+    {
+      "node": "dt"
+    },,,
+    {
+      "node": "dtOptions",
+      "expansion": {
+        "vertical": true,
+        "labelsLeft": true,
+        "height": 4,
+        "width": 1
+      }
+    },,
+    {
+      "value": "running"
+    },
+    {
+      "node": "$running"
+    }
+  ],
+  [,,,,,
+    {
+      "value": "reset"
+    },
+    {
+      "node": "$$reset"
+    }
+  ],
+  [
+    {
+      "value": "Inlet flowrate (%):"
+    },,,,,
+    {
+      "value": "tank level"
+    },
+    {
+      "node": "$tankLevel"
+    }
+  ],
+  [
+    {
+      "node": "inletflowRate"
+    },,,,,
+    {
+      "value": "data"
+    },
+    {
+      "node": "$data",
+      "expansion": {
+        "vertical": true,
+        "height": 20,
+        "width": 1
+      }
+    }
+  ],,
+  [
+    {
+      "node": "$29"
+    }
+  ],,
+  [
+    {
+      "node": "$28"
+    }
+  ],,,,,,,,,,,,,,
+  [
+    {
+      "value": "Outflow pattern:"
+    }
+  ],
+  [,
+    {
+      "node": "outflowpattern",
+      "expansion": {
+        "vertical": true,
+        "secondary": false,
+        "height": 2,
+        "width": 1
+      }
+    }
+  ],
+  [,,,,,
+    {
+      "value": "Current item:"
+    }
+  ],
+  [,,,,,,
+    {
+      "node": "$current"
+    }
+  ],
+  [
+    {
+      "value": "Throttled inlet flow rate:"
+    }
+  ],
+  [,
+    {
+      "node": "inletflowRateTick"
+    }
+  ],,
+  [
+    {
+      "value": "Pump:"
+    },
+    {
+      "node": "p"
+    }
+  ],,
+  [
+    {
+      "value": "Inletflow:"
+    },
+    {
+      "node": "inletflow"
+    }
+  ],,
+  [
+    {
+      "value": "Tank level:"
+    },
+    {
+      "node": "currentTankLevel"
+    }
+  ],,
+  [
+    {
+      "value": "Math:"
+    },
+    {
+      "node": "math"
+    }
+  ],,
+  [
+    {
+      "value": "Append:"
+    },
+    {
+      "node": "d"
+    }
+  ]
+]
